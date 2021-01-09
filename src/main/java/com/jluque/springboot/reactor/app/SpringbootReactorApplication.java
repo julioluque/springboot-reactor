@@ -28,7 +28,7 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 		nombres.subscribe(e -> log.info(e), error -> log.error(error.getMessage()), new Runnable() {
 			@Override
 			public void run() {
-				log.info("Flux finalizado correctamente!!!");
+				log.info("Flux finalizado correctamente..!!!");
 			}
 			
 		});
