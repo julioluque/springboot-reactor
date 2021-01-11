@@ -3,6 +3,8 @@ package com.jluque.springboot.reactor.app;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -219,10 +221,31 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 			} else {
 				return Flux.just(i);
 			}
-		}).map(i -> "hola " + i)
-		.retry(2).subscribe(s -> log.info(s), e -> log.error(e.getMessage()));
+		}).map(i -> "hola " + i).retry(2).subscribe(s -> log.info(s), e -> log.error(e.getMessage()));
 
 		latch.await();
+	}
+
+	public void ejemploIntervaloDesdeCreate() {
+		Flux.create(emitter -> {
+			Timer timer = new Timer();
+			timer.schedule(new TimerTask() {
+				private Integer contador = 0;
+
+				@Override
+				public void run() {
+					emitter.next(++contador);
+					if (contador == 10) {
+						timer.cancel();
+						emitter.complete();
+					} else if (contador == 15) {
+						emitter.error(new InterruptedException("Error. se ha detenido el flux en 5!"));
+					}
+
+				}
+			}, 1000, 1000);
+		}).subscribe(next -> log.info(next.toString()), error -> log.error(error.getMessage()),
+				() -> log.info("Hemos Terminado!") );
 	}
 
 	// ========================== MAIN ==========================
@@ -239,7 +262,8 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 //		ejemploZipWithRangos();
 //		ejemploInterval();
 //		ejemploDelayElement();
-		ejemploIntervaloInfinito();
+//		ejemploIntervaloInfinito();
+		ejemploIntervaloDesdeCreate();
 	}
 
 }
