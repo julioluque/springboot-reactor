@@ -251,41 +251,42 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 	}
 
 	public void ejemploContraPresion() {
-		Flux.range(1, 10).log().subscribe(new Subscriber<Integer>() {
+		Flux.range(1, 10).log()
+//		.limitRate(2).subscribe();
+				.subscribe(new Subscriber<Integer>() {
 
-			private Subscription s;
-			private Integer limite = 5;
-			private Integer consumido = 0;
+					private Subscription s;
+					private Integer limite = 5;
+					private Integer consumido = 0;
 
-			@Override
-			public void onSubscribe(Subscription s) {
-				this.s = s;
-				s.request(limite);
-			}
+					@Override
+					public void onSubscribe(Subscription s) {
+						this.s = s;
+						s.request(limite);
+					}
 
-			@Override
-			public void onNext(Integer t) {
-				log.info(t.toString());
-				consumido++;
-				if (consumido == limite) {
-					consumido = 0;
-					s.request(limite);
-				}
-			}
+					@Override
+					public void onNext(Integer t) {
+						log.info(t.toString());
+						consumido++;
+						if (consumido == limite) {
+							consumido = 0;
+							s.request(limite);
+						}
+					}
 
-			@Override
-			public void onError(Throwable t) {
-				// TODO Auto-generated method stub
+					@Override
+					public void onError(Throwable t) {
+						// TODO Auto-generated method stub
 
-			}
+					}
 
-			@Override
-			public void onComplete() {
-				// TODO Auto-generated method stub
+					@Override
+					public void onComplete() {
+						// TODO Auto-generated method stub
 
-			}
-		});
-//		.subscribe(i -> log.info(i.toString()));
+					}
+				});
 	}
 
 	// ========================== MAIN ==========================
