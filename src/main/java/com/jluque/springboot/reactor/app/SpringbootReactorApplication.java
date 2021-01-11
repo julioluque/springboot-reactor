@@ -7,6 +7,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -245,7 +247,45 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 				}
 			}, 1000, 1000);
 		}).subscribe(next -> log.info(next.toString()), error -> log.error(error.getMessage()),
-				() -> log.info("Hemos Terminado!") );
+				() -> log.info("Hemos Terminado!"));
+	}
+
+	public void ejemploContraPresion() {
+		Flux.range(1, 10).log().subscribe(new Subscriber<Integer>() {
+
+			private Subscription s;
+			private Integer limite = 5;
+			private Integer consumido = 0;
+
+			@Override
+			public void onSubscribe(Subscription s) {
+				this.s = s;
+				s.request(limite);
+			}
+
+			@Override
+			public void onNext(Integer t) {
+				log.info(t.toString());
+				consumido++;
+				if (consumido == limite) {
+					consumido = 0;
+					s.request(limite);
+				}
+			}
+
+			@Override
+			public void onError(Throwable t) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onComplete() {
+				// TODO Auto-generated method stub
+
+			}
+		});
+//		.subscribe(i -> log.info(i.toString()));
 	}
 
 	// ========================== MAIN ==========================
@@ -263,7 +303,8 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 //		ejemploInterval();
 //		ejemploDelayElement();
 //		ejemploIntervaloInfinito();
-		ejemploIntervaloDesdeCreate();
+//		ejemploIntervaloDesdeCreate();
+		ejemploContraPresion();
 	}
 
 }
