@@ -1,8 +1,9 @@
 package com.jluque.springboot.reactor.app;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Flow.Subscriber;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +161,8 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 			return comentarios;
 		});
 
-		Mono<UsuarioComentarios> usuarioComentarios = usuarioMono.zipWith(comentariosMono, (u, c) -> new UsuarioComentarios(u, c));
+		Mono<UsuarioComentarios> usuarioComentarios = usuarioMono.zipWith(comentariosMono,
+				(u, c) -> new UsuarioComentarios(u, c));
 		usuarioComentarios.subscribe(uc -> log.info(uc.toString()));
 	}
 
@@ -182,6 +184,47 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 		usuarioConComentarios.subscribe(uc -> log.info(uc.toString()));
 	}
 
+	public void ejemploZipWithRangos() throws Exception {
+		Flux<Integer> rangos = Flux.range(0, 4);
+		Flux.just(3, 41, 5, 2, 6).map(i -> (i * 2))
+				.zipWith(rangos, (uno, dos) -> String.format("primer flux %d, y segundo flux %d", uno, dos))
+				.subscribe(texto -> log.info(texto));
+	}
+
+	public void ejemploInterval() throws Exception {
+		Flux<Integer> rango = Flux.range(1, 12);
+		Flux<Long> retraso = Flux.interval(Duration.ofSeconds(1));
+
+		rango.zipWith(retraso, (ra, re) -> ra).doOnNext(i -> log.info(i.toString())).blockLast();
+	}
+
+	public void ejemploDelayElement() throws InterruptedException {
+		Flux<Integer> rango = Flux.range(1, 12).delayElements(Duration.ofSeconds(1))
+				.doOnNext(i -> log.info(i.toString()));
+
+		rango.blockLast();
+
+//		rango.subscribe();
+//		Thread.sleep(13000);
+
+	}
+
+	public void ejemploIntervaloInfinito() throws InterruptedException {
+
+		CountDownLatch latch = new CountDownLatch(1);
+
+		Flux.interval(Duration.ofSeconds(1)).doOnTerminate(latch::countDown).flatMap(i -> {
+			if (i >= 5) {
+				return Flux.error(new InterruptedException("Solo hasta 5..."));
+			} else {
+				return Flux.just(i);
+			}
+		}).map(i -> "hola " + i)
+		.retry(2).subscribe(s -> log.info(s), e -> log.error(e.getMessage()));
+
+		latch.await();
+	}
+
 	// ========================== MAIN ==========================
 	@Override
 	public void run(String... args) throws Exception {
@@ -191,8 +234,12 @@ public class SpringbootReactorApplication implements CommandLineRunner {
 //		ejemploCollectList();
 //		ejemploUsuarioComentariosFlatMap();
 //		ejemploUsuarioComentariosZipWith();
-		zipWithUsuarioComentarios2();
+//		zipWithUsuarioComentarios2();
 
+//		ejemploZipWithRangos();
+//		ejemploInterval();
+//		ejemploDelayElement();
+		ejemploIntervaloInfinito();
 	}
 
 }
